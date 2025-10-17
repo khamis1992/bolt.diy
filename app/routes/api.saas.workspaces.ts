@@ -18,10 +18,22 @@ function requireAdminToken(request: Request, env: Env) {
 }
 
 async function handleCreateWorkspace({ request, context }: ActionFunctionArgs) {
+  const saasEnabled = isSaasEnabled(context.cloudflare?.env);
+
+  if (!saasEnabled) {
+    return json({ error: 'SaaS mode is disabled' }, { status: 403 });
+  }
+
   const env = context.cloudflare?.env;
 
-  if (!env || !isSaasEnabled(env)) {
-    return json({ error: 'SaaS mode is disabled' }, { status: 403 });
+  if (!env) {
+    return json(
+      {
+        error:
+          'Cloudflare environment bindings are unavailable. Run under `wrangler pages dev` or deploy to Cloudflare Pages.',
+      },
+      { status: 500 },
+    );
   }
 
   requireAdminToken(request, env);

@@ -20,7 +20,19 @@ export interface WorkspaceMemberRecord {
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export function isSaasEnabled(env: Partial<Env> | undefined): boolean {
-  return env?.SAAS_MODE === 'true';
+  if (env?.SAAS_MODE === 'true') {
+    return true;
+  }
+
+  if (env?.SAAS_MODE === 'false') {
+    return false;
+  }
+
+  if (!env && typeof process !== 'undefined' && process.env?.SAAS_MODE === 'true') {
+    return true;
+  }
+
+  return false;
 }
 
 export function normalizeWorkspaceSlug(input: string): string {

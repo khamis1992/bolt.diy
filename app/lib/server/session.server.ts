@@ -10,22 +10,32 @@ interface WorkspaceSessionData {
 let cachedSessionSecret: string | null = null;
 let cachedSessionStorage: ReturnType<typeof createCookieSessionStorage<WorkspaceSessionData>> | null = null;
 
+function resolveSessionSecret(context: AppLoadContext): string | undefined {
+  const cloudflareSecret = context.cloudflare?.env?.SESSION_SECRET;
+
+  if (cloudflareSecret) {
+    return cloudflareSecret;
+  }
+
+  if (typeof process !== 'undefined' && process.env?.SESSION_SECRET) {
+    return process.env.SESSION_SECRET;
+  }
+
+  return undefined;
+}
+
 function getSessionStorage(context: AppLoadContext) {
-  const env = context.cloudflare?.env;
+  const sessionSecret = resolveSessionSecret(context);
 
-  if (!env) {
-    throw new Error('Cloudflare environment is not available in load context.');
+  if (!sessionSecret) {
+    throw new Error('SESSION_SECRET is not configured in the Cloudflare bindings or process environment.');
   }
 
-  if (!env.SESSION_SECRET) {
-    throw new Error('SESSION_SECRET is not configured.');
-  }
-
-  if (cachedSessionStorage && cachedSessionSecret === env.SESSION_SECRET) {
+  if (cachedSessionStorage && cachedSessionSecret === sessionSecret) {
     return cachedSessionStorage;
   }
 
-  cachedSessionSecret = env.SESSION_SECRET;
+  cachedSessionSecret = sessionSecret;
   cachedSessionStorage = createCookieSessionStorage<WorkspaceSessionData>({
     cookie: {
       name: '__bolt_session',
@@ -33,7 +43,7 @@ function getSessionStorage(context: AppLoadContext) {
       path: '/',
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
-      secrets: [env.SESSION_SECRET],
+      secrets: [sessionSecret],
     },
   });
 

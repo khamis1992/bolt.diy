@@ -167,6 +167,8 @@ Bolt.diy can now operate as a multi-tenant SaaS similar to bolt.new. To enable h
 3. **Deploy the Pages project**
    - Use `pnpm build` followed by `wrangler pages deploy` as usual. The runtime now injects the Cloudflare context so Remix can access
      the D1 binding.
+   - For local development against the hosted stack, run `wrangler pages dev` instead of `pnpm dev` so the Pages runtime and D1 binding
+     are available to the Remix loaders and actions.
 4. **Create your first workspace**
    - Issue a `POST` request to `/api/saas/workspaces` with the `Authorization: Bearer <SAAS_ADMIN_TOKEN>` header and a JSON body such
      as `{ "name": "Acme", "slug": "acme" }`. The response includes the initial `apiKey` for that workspace.

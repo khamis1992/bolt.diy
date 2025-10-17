@@ -26,9 +26,9 @@ export type RootLoaderData = {
 };
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const env = context.cloudflare?.env;
+  const saasModeEnabled = isSaasEnabled(context.cloudflare?.env);
 
-  if (!env || !isSaasEnabled(env)) {
+  if (!saasModeEnabled) {
     return json<RootLoaderData>({ saasEnabled: false, workspace: null, member: null });
   }
 

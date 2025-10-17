@@ -11,31 +11,42 @@ interface LoginPayload {
 
 export const loader = withSecurity(
   async ({ request, context }: LoaderFunctionArgs) => {
-    const env = context.cloudflare?.env;
+    const saasEnabled = isSaasEnabled(context.cloudflare?.env);
 
-    if (!env || !isSaasEnabled(env)) {
+    if (!saasEnabled) {
       return json({ saasEnabled: false });
     }
 
-    const session = await getWorkspaceSession(request, context);
+    try {
+      const session = await getWorkspaceSession(request, context);
 
-    return json({
-      saasEnabled: true,
-      session: session
-        ? {
-            workspace: {
-              id: session.workspace.id,
-              slug: session.workspace.slug,
-              name: session.workspace.name,
-            },
-            member: {
-              id: session.member.id,
-              email: session.member.email,
-              role: session.member.role,
-            },
-          }
-        : null,
-    });
+      return json({
+        saasEnabled: true,
+        session: session
+          ? {
+              workspace: {
+                id: session.workspace.id,
+                slug: session.workspace.slug,
+                name: session.workspace.name,
+              },
+              member: {
+                id: session.member.id,
+                email: session.member.email,
+                role: session.member.role,
+              },
+            }
+          : null,
+      });
+    } catch (error) {
+      return json(
+        {
+          saasEnabled: true,
+          session: null,
+          error: error instanceof Error ? error.message : 'Failed to read SaaS session',
+        },
+        { status: 500 },
+      );
+    }
   },
   {
     allowedMethods: ['GET'],
@@ -43,9 +54,9 @@ export const loader = withSecurity(
 );
 
 async function handleLogin(request: Request, context: ActionFunctionArgs['context']) {
-  const env = context.cloudflare?.env;
+  const saasEnabled = isSaasEnabled(context.cloudflare?.env);
 
-  if (!env || !isSaasEnabled(env)) {
+  if (!saasEnabled) {
     return json({ error: 'SaaS mode is disabled' }, { status: 403 });
   }
 
@@ -61,47 +72,54 @@ async function handleLogin(request: Request, context: ActionFunctionArgs['contex
     return json({ error: 'Both apiKey and email are required' }, { status: 400 });
   }
 
-  const verification = await verifyWorkspaceApiKey(context, payload.apiKey);
+  try {
+    const verification = await verifyWorkspaceApiKey(context, payload.apiKey);
 
-  if (!verification) {
-    return json({ error: 'Invalid API key' }, { status: 401 });
+    if (!verification) {
+      return json({ error: 'Invalid API key' }, { status: 401 });
+    }
+
+    const member = await ensureWorkspaceMember(context, verification.workspace.id, payload.email);
+    const session = await getSession(request, context);
+
+    session.set('workspaceId', verification.workspace.id);
+    session.set('memberId', member.id);
+
+    const setCookieHeader = await commitSession(session, context);
+
+    return new Response(
+      JSON.stringify({
+        workspace: {
+          id: verification.workspace.id,
+          slug: verification.workspace.slug,
+          name: verification.workspace.name,
+        },
+        member: {
+          id: member.id,
+          email: member.email,
+          role: member.role,
+        },
+      }),
+      {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Set-Cookie': setCookieHeader,
+        },
+      },
+    );
+  } catch (error) {
+    return json(
+      { error: error instanceof Error ? error.message : 'Failed to establish SaaS session' },
+      { status: 500 },
+    );
   }
-
-  const member = await ensureWorkspaceMember(context, verification.workspace.id, payload.email);
-  const session = await getSession(request, context);
-
-  session.set('workspaceId', verification.workspace.id);
-  session.set('memberId', member.id);
-
-  const setCookieHeader = await commitSession(session, context);
-
-  return new Response(
-    JSON.stringify({
-      workspace: {
-        id: verification.workspace.id,
-        slug: verification.workspace.slug,
-        name: verification.workspace.name,
-      },
-      member: {
-        id: member.id,
-        email: member.email,
-        role: member.role,
-      },
-    }),
-    {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Set-Cookie': setCookieHeader,
-      },
-    },
-  );
 }
 
 async function handleLogout(request: Request, context: ActionFunctionArgs['context']) {
-  const env = context.cloudflare?.env;
+  const saasEnabled = isSaasEnabled(context.cloudflare?.env);
 
-  if (!env || !isSaasEnabled(env)) {
+  if (!saasEnabled) {
     return json({ success: true });
   }
 
