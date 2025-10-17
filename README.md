@@ -176,6 +176,13 @@ Bolt.diy can now operate as a multi-tenant SaaS similar to bolt.new. To enable h
    - Share the workspace API key with members. They can sign in from the hosted UI using their email address and the provided key.
    - Sessions are stored securely in signed cookies. Use `/api/saas/session` (`DELETE`) to log users out programmatically if needed.
 
+### SaaS operator API surface
+
+- `POST /api/saas/workspaces` — Provision a new workspace and return its bootstrap API key. Requires the `Authorization: Bearer <SAAS_ADMIN_TOKEN>` header.
+- `GET /api/saas/session` — Inspect the current session payload for debugging an authenticated user.
+- `POST /api/saas/session` — Establish a session for a member given their email address and workspace API key.
+- `DELETE /api/saas/session` — Destroy the active session cookie for the caller.
+
 ### Option 2: Using Docker
 
 This option requires some familiarity with Docker but provides a more isolated environment.
