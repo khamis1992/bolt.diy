@@ -151,7 +151,29 @@ You have two options for running Bolt.DIY: directly on your machine or using Doc
    ```bash
    pnpm run dev
    ```
-   
+
+## Deploying as a SaaS on Cloudflare Pages
+
+Bolt.diy can now operate as a multi-tenant SaaS similar to bolt.new. To enable hosted mode:
+
+1. **Provision Cloudflare D1**
+   - Run `wrangler d1 create bolt-saas` to generate a database.
+   - Update `wrangler.toml` with the returned `database_name` and `database_id` and keep the binding name as `BOLT_DB`.
+   - Apply the schema using `wrangler d1 migrations apply bolt-saas --local` (for local dev) or `--remote` in production. The migration
+     files live in `migrations/0001_init_saas.sql`.
+2. **Configure environment variables**
+   - Set `SAAS_MODE=true`, `SESSION_SECRET=<32+ random characters>`, and `SAAS_ADMIN_TOKEN=<operator secret>` either in `.env.local`
+     (for development) or within your Cloudflare Pages project settings.
+3. **Deploy the Pages project**
+   - Use `pnpm build` followed by `wrangler pages deploy` as usual. The runtime now injects the Cloudflare context so Remix can access
+     the D1 binding.
+4. **Create your first workspace**
+   - Issue a `POST` request to `/api/saas/workspaces` with the `Authorization: Bearer <SAAS_ADMIN_TOKEN>` header and a JSON body such
+     as `{ "name": "Acme", "slug": "acme" }`. The response includes the initial `apiKey` for that workspace.
+5. **Invite teammates**
+   - Share the workspace API key with members. They can sign in from the hosted UI using their email address and the provided key.
+   - Sessions are stored securely in signed cookies. Use `/api/saas/session` (`DELETE`) to log users out programmatically if needed.
+
 ### Option 2: Using Docker
 
 This option requires some familiarity with Docker but provides a more isolated environment.

@@ -14,6 +14,8 @@ import { extractPropertiesFromMessage } from '~/lib/.server/llm/utils';
 import type { DesignScheme } from '~/types/design-scheme';
 import { MCPService } from '~/lib/services/mcpService';
 import { StreamRecoveryManager } from '~/lib/.server/llm/stream-recovery';
+import { isSaasEnabled } from '~/lib/server/saas.server';
+import { requireWorkspaceSession } from '~/lib/server/session.server';
 
 export async function action(args: ActionFunctionArgs) {
   return chatAction(args);
@@ -40,6 +42,10 @@ function parseCookies(cookieHeader: string): Record<string, string> {
 }
 
 async function chatAction({ context, request }: ActionFunctionArgs) {
+  if (isSaasEnabled(context.cloudflare?.env)) {
+    await requireWorkspaceSession(request, context);
+  }
+
   const streamRecovery = new StreamRecoveryManager({
     timeout: 45000,
     maxRetries: 2,

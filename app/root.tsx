@@ -1,5 +1,5 @@
 import { useStore } from '@nanostores/react';
-import type { LinksFunction } from '@remix-run/cloudflare';
+import { json, type LinksFunction, type LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from '@remix-run/react';
 import tailwindReset from '@unocss/reset/tailwind-compat.css?url';
 import { themeStore } from './lib/stores/theme';
@@ -15,6 +15,43 @@ import globalStyles from './styles/index.scss?url';
 import xtermStyles from '@xterm/xterm/css/xterm.css?url';
 
 import 'virtual:uno.css';
+
+import { getWorkspaceSession } from './lib/server/session.server';
+import { isSaasEnabled } from './lib/server/saas.server';
+
+export type RootLoaderData = {
+  saasEnabled: boolean;
+  workspace: { id: string; slug: string; name: string } | null;
+  member: { id: string; email: string; role: string } | null;
+};
+
+export async function loader({ request, context }: LoaderFunctionArgs) {
+  const env = context.cloudflare?.env;
+
+  if (!env || !isSaasEnabled(env)) {
+    return json<RootLoaderData>({ saasEnabled: false, workspace: null, member: null });
+  }
+
+  const session = await getWorkspaceSession(request, context);
+
+  if (!session) {
+    return json<RootLoaderData>({ saasEnabled: true, workspace: null, member: null });
+  }
+
+  return json<RootLoaderData>({
+    saasEnabled: true,
+    workspace: {
+      id: session.workspace.id,
+      slug: session.workspace.slug,
+      name: session.workspace.name,
+    },
+    member: {
+      id: session.member.id,
+      email: session.member.email,
+      role: session.member.role,
+    },
+  });
+}
 
 export const links: LinksFunction = () => [
   {

@@ -1,6 +1,10 @@
 interface Env {
   RUNNING_IN_DOCKER: Settings;
   DEFAULT_NUM_CTX: Settings;
+  SAAS_MODE: string;
+  SESSION_SECRET: string;
+  SAAS_ADMIN_TOKEN: string;
+  BOLT_DB: D1Database;
   ANTHROPIC_API_KEY: string;
   OPENAI_API_KEY: string;
   GROQ_API_KEY: string;

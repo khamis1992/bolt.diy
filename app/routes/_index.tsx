@@ -1,9 +1,12 @@
 import { json, type MetaFunction } from '@remix-run/cloudflare';
 import { ClientOnly } from 'remix-utils/client-only';
+import { useRouteLoaderData } from '@remix-run/react';
 import { BaseChat } from '~/components/chat/BaseChat';
 import { Chat } from '~/components/chat/Chat.client';
 import { Header } from '~/components/header/Header';
 import BackgroundRays from '~/components/ui/BackgroundRays';
+import { LoginScreen } from '~/components/auth/LoginScreen';
+import type { loader as rootLoader } from '~/root';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Bolt' }, { name: 'description', content: 'Talk with Bolt, an AI assistant from StackBlitz' }];
@@ -18,6 +21,12 @@ export const loader = () => json({});
  * to keep the UI clean and consistent with the design system.
  */
 export default function Index() {
+  const rootData = useRouteLoaderData<typeof rootLoader>('root');
+
+  if (rootData?.saasEnabled && !rootData.workspace) {
+    return <LoginScreen />;
+  }
+
   return (
     <div className="flex flex-col h-full w-full bg-bolt-elements-background-depth-1">
       <BackgroundRays />

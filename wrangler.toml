@@ -4,3 +4,11 @@ compatibility_flags = ["nodejs_compat"]
 compatibility_date = "2025-03-28"
 pages_build_output_dir = "./build/client"
 send_metrics = false
+
+[[d1_databases]]
+binding = "BOLT_DB"
+# Replace with the actual database name once created via `wrangler d1 create`
+database_name = "bolt-saas"
+# Replace with the provisioned database ID before deploying
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
