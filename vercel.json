@@ -1,12 +1,13 @@
 {
-  "buildCommand": "pnpm run build",
+  "buildCommand": "VERCEL=1 pnpm run build",
   "devCommand": "pnpm run dev",
   "installCommand": "pnpm install",
   "framework": null,
   "outputDirectory": "build/client",
   "build": {
     "env": {
-      "NODE_OPTIONS": "--max-old-space-size=8192"
+      "NODE_OPTIONS": "--max-old-space-size=8192",
+      "VERCEL": "1"
     }
   },
   "regions": ["iad1"]
