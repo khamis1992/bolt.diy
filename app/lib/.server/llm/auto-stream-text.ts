@@ -10,7 +10,7 @@ import type { StreamingOptions } from './stream-text';
 /**
  * Stream text with automatic provider selection
  */
-export async function autoStreamText(props: {
+export async function streamText(props: {
   messages: any[];
   env?: any;
   options?: StreamingOptions;
@@ -48,4 +48,7 @@ export async function autoStreamText(props: {
     throw error;
   }
 }
+
+// Re-export types from original stream-text
+export type { Messages, StreamingOptions } from './stream-text';
 
