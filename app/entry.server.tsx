@@ -1,20 +1,30 @@
-import type { AppLoadContext } from '@remix-run/cloudflare';
+import type { AppLoadContext, EntryContext } from '@remix-run/node';
 import { RemixServer } from '@remix-run/react';
 import { isbot } from 'isbot';
-import { renderToReadableStream } from 'react-dom/server';
 import { renderHeadToString } from 'remix-island';
 import { Head } from './root';
 import { themeStore } from '~/lib/stores/theme';
+
+// Use Vercel's handleRequest when on Vercel, otherwise use custom implementation
+const isVercel = process.env.VERCEL === '1';
 
 export default async function handleRequest(
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,
-  remixContext: any,
+  remixContext: EntryContext,
   _loadContext: AppLoadContext,
 ) {
-  // await initializeModelList({});
+  // If on Vercel, use their optimized handler
+  if (isVercel) {
+    const { handleRequest: vercelHandleRequest } = await import('@vercel/remix');
+    const remixServer = <RemixServer context={remixContext} url={request.url} />;
+    return vercelHandleRequest(request, responseStatusCode, responseHeaders, remixServer);
+  }
 
+  // For local development or Cloudflare, use custom streaming implementation
+  const { renderToReadableStream } = await import('react-dom/server');
+  
   const readable = await renderToReadableStream(<RemixServer context={remixContext} url={request.url} />, {
     signal: request.signal,
     onError(error: unknown) {
@@ -78,3 +88,4 @@ export default async function handleRequest(
     status: responseStatusCode,
   });
 }
+
