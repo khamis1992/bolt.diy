@@ -6,8 +6,8 @@ export const WORK_DIR = `/home/${WORK_DIR_NAME}`;
 export const MODIFICATIONS_TAG_NAME = 'bolt_file_modifications';
 export const MODEL_REGEX = /^\[Model: (.*?)\]\n\n/;
 export const PROVIDER_REGEX = /\[Provider: (.*?)\]\n\n/;
-// Use OpenRouter free model as default (Google Gemini 2.0 Flash Thinking)
-export const DEFAULT_MODEL = 'google/gemini-2.0-flash-thinking-exp:free';
+// Use OpenRouter free model as default (Meta Llama 3.2 3B Instruct)
+export const DEFAULT_MODEL = 'meta-llama/llama-3.2-3b-instruct:free';
 export const PROMPT_COOKIE_KEY = 'cachedPrompt';
 export const TOOL_EXECUTION_APPROVAL = {
   APPROVE: 'Yes, approved.',
