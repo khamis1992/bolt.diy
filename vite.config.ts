@@ -66,6 +66,9 @@ export default defineConfig((config) => {
       'OLLAMA_API_BASE_URL',
       'LMSTUDIO_API_BASE_URL',
       'TOGETHER_API_BASE_URL',
+      'OPENROUTER_API_KEY',
+      'LONGCAT_API_KEY',
+      'DEEPSEEK_API_KEY',
     ],
     css: {
       preprocessorOptions: {
