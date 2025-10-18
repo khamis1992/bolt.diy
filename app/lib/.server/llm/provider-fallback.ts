@@ -1,6 +1,6 @@
 import { createScopedLogger } from '~/utils/logger';
 import { streamText as originalStreamText } from './stream-text';
-import type { Messages } from './stream-text';
+import type { Messages, StreamTextProps } from './stream-text.types';
 
 const logger = createScopedLogger('provider-fallback');
 
@@ -55,7 +55,7 @@ function isQuotaOrAuthError(error: any): boolean {
  * Stream text with automatic provider fallback
  * If a provider fails due to quota/auth issues, automatically try the next provider
  */
-export async function streamTextWithFallback(props: Parameters<typeof originalStreamText>[0]) {
+export async function streamTextWithFallback(props: StreamTextProps) {
   const { messages } = props;
 
   // Try each provider in order

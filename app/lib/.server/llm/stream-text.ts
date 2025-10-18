@@ -11,18 +11,8 @@ import { createFilesContext, extractPropertiesFromMessage } from './utils';
 import { discussPrompt } from '~/lib/common/prompts/discuss-prompt';
 import type { DesignScheme } from '~/types/design-scheme';
 
-export type Messages = Message[];
-
-export interface StreamingOptions extends Omit<Parameters<typeof _streamText>[0], 'model'> {
-  supabaseConnection?: {
-    isConnected: boolean;
-    hasSelectedProject: boolean;
-    credentials?: {
-      anonKey?: string;
-      supabaseUrl?: string;
-    };
-  };
-}
+// Re-export types from separate file to avoid client/server bundling issues
+export type { Messages, StreamingOptions, StreamTextProps } from './stream-text.types';
 
 const logger = createScopedLogger('stream-text');
 
@@ -51,21 +41,7 @@ function sanitizeText(text: string): string {
   return sanitized.trim();
 }
 
-export async function streamText(props: {
-  messages: Omit<Message, 'id'>[];
-  env?: Env;
-  options?: StreamingOptions;
-  apiKeys?: Record<string, string>;
-  files?: FileMap;
-  providerSettings?: Record<string, IProviderSetting>;
-  promptId?: string;
-  contextOptimization?: boolean;
-  contextFiles?: FileMap;
-  summary?: string;
-  messageSliceId?: number;
-  chatMode?: 'discuss' | 'build';
-  designScheme?: DesignScheme;
-}) {
+export async function streamText(props: import('./stream-text.types').StreamTextProps) {
   const {
     messages,
     env: serverEnv,
