@@ -51,6 +51,10 @@ export default defineConfig((config) => {
           v3_throwAbortReason: true,
           v3_lazyRouteDiscovery: true,
         },
+        ...(process.env.VERCEL ? {
+          serverModuleFormat: 'esm',
+          serverPlatform: 'node',
+        } : {}),
       }),
       UnoCSS(),
       tsconfigPaths(),
