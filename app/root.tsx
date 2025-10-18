@@ -73,9 +73,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
   }, [theme]);
 
   return (
-    <html lang="en" data-theme={theme}>
+    <html lang="en" data-theme={theme} suppressHydrationWarning>
       <Head />
-      <body>
+      <body suppressHydrationWarning>
         <div id="root">
           <ClientOnly>{() => <DndProvider backend={HTML5Backend}>{children}</DndProvider>}</ClientOnly>
         </div>
