@@ -198,12 +198,29 @@ export class LLMManager {
   }
 
   getDefaultProvider(): BaseProvider {
+    // Explicitly use OpenRouter as default provider
+    const openRouter = this._providers.get('OpenRouter');
+    if (openRouter) {
+      return openRouter;
+    }
+    
+    // Fallback to LongCat if OpenRouter is not available
+    const longCat = this._providers.get('LongCat');
+    if (longCat) {
+      return longCat;
+    }
+    
+    // Fallback to DeepSeek if LongCat is not available
+    const deepSeek = this._providers.get('Deepseek');
+    if (deepSeek) {
+      return deepSeek;
+    }
+    
+    // Final fallback: return first available provider
     const firstProvider = this._providers.values().next().value;
-
     if (!firstProvider) {
       throw new Error('No providers registered');
     }
-
     return firstProvider;
   }
 }
