@@ -23,7 +23,7 @@ export default class OpenRouterProvider extends BaseProvider {
   getApiKeyLink = 'https://openrouter.ai/settings/keys';
 
   config = {
-    apiTokenKey: 'OPEN_ROUTER_API_KEY',
+    apiTokenKey: 'OPENROUTER_API_KEY',
   };
 
   staticModels: ModelInfo[] = [
